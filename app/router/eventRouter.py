@@ -70,3 +70,18 @@ def fetch_recommended_events(access_token: str = Cookie(None), db: Session = Dep
     )
 
     return events
+
+@router.get('/fetchEventsByType/{eventType}')
+def fetch_events_by_type(eventType: str, access_token: str = Cookie(None), db: Session = Depends(get_db)):
+    user_id = check_token(access_token)
+
+    if not user_id:
+        raise HTTPException(status_code=403, detail='Please login to fetch events')
+
+    events = (
+        db.query(Event).filter(
+            Event.category.ilike(f"%{eventType}%"),
+            Event.status == "active"
+        ).limit(5).all()
+    )
+    return events
